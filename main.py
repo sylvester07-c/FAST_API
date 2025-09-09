@@ -2,28 +2,39 @@ from fastapi import FastAPI, Response, status, HTTPException
 from fastapi.params import Body
 from pydantic import BaseModel
 from typing import Optional
-from random import randint  
+from random import randrange
 
 app = FastAPI()
 
 
 class Post(BaseModel):
     title: str
-    post: str
+    content: str
+    liked: bool = True
+    rating: Optional[int]
+
+
+my_posts = [{"title": "title of post 1", "content": "content of post 1", "id": 1}, {
+    "title": "my fav football team", "content": "chelsea football team", "id": 2}]
+
+def find_post(id):
+    for p in my_posts:
+        if p["id"] == id:
+            return p
+
 # class Post(BaseModel):
 #     title: str
 #     content: str
 #     rating: Optional[int] = None
 
-    
 
 # my_posts = [{"title":"My Post 1", "content":"This is my post content 1", "id":1}, {"title":"My Post 2", "content":"This is my post content 2", "id":2}]
 
 # def find_post(id):
 #     for p in my_posts:
 #         if p['id'] == id:
-#             return p 
-        
+#             return p
+
 # def find_index_post(id):
 #     for i, p in enumerate(my_posts):
 #         if p['id'] == id:
@@ -36,20 +47,32 @@ async def root():
 
 
 @app.get("/posts")
-def get_post():
+def get_posts():
     return {"message": my_posts}
 
 
-@app.post("/newPost")
-async def new_post(new_post: Post):
-    print(new_post)
+@app.post("/posts")
+def my_post(post: Post):
+    post_dict = post.dict()
+    post_dict["id"] = randrange(1,1000000)
+    my_posts.append(post_dict)
     return {
-    "data": "new_post"
+        "Data" : post_dict
     }
+    
+@app.get("/posts/{id}")
+def get_post(id: int):
+    post = find_post(id)
+    print(post)
+    return {
+        "post_details":  post
+    }
+      
+    
 
 # @app.post("/posts", status_code=status.HTTP_201_CREATED)
 # def create_post(post: Post):
-#     post_dict = post.dict() # Convert Pydantic model to dictionary 
+#     post_dict = post.dict() # Convert Pydantic model to dictionary
 #     post_dict["id"] = randint(0, 1000000000000)  # Assign a random ID for the new post
 #     my_posts.append(post_dict)
 #     return {"data": post_dict}
@@ -57,15 +80,15 @@ async def new_post(new_post: Post):
 # @app.get("/posts/latest")
 # def get_latest_post():
 #     post = my_posts[len(my_posts)-1]
-#     return {"detail": post}  
+#     return {"detail": post}
 
 # @app.get("/posts/{id}")
 # def get_post(id: int):
 #     post = find_post(id)
 #     if not post:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
 #                             detail=f"post with id: {id} was not found")
- 
+
 #     return {"post_detail": post}
 
 # @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
